@@ -1,0 +1,11 @@
+{
+  "name": "tirelire",
+  "version": "1.0.0",
+  "description": "Tirelire est une API backend sécurisée qui permet de gérer une tontine (Daret) numérique : un groupe de personnes met en commun une somme fixe chaque mois, et à tour de rôle, chaque membre reçoit la cagnotte.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mohammed Ben Cheikh",
+  "license": "ISC"
+}
