@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon --watch \"src/**/*.js\" --exec node src/index.js"
+    "dev": "nodemon --watch \"src/**/*.js\" --exec node src/index.js",
+    "db": "start_replset.bat"
   },
   "author": "Mohammed Ben Cheikh",
   "license": "ISC",
