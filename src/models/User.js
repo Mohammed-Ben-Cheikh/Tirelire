@@ -3,11 +3,6 @@ const { Schema } = mongoose;
 
 const userSchema = new Schema(
   {
-    username: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     email: {
       type: String,
       required: true,
@@ -18,14 +13,38 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    first_name: {
+      type: String,
+      trim: true,
+    },
+    last_name: {
+      type: String,
+      trim: true,
+    },
+    phone_number: {
+      type: String,
+      maxlength: 20,
+    },
     role: {
       type: String,
-      enum: ["customer", "admin"],
-      default: "customer",
+      enum: ["particulier", "admin"],
+      default: "particulier",
     },
     isActive: {
       type: Boolean,
       default: true,
+    },
+    email_verified: {
+      type: Boolean,
+      default: false,
+    },
+    kyc_status: {
+      type: String,
+      enum: ["pending", "in_review", "approved", "rejected"],
+      default: "pending",
+    },
+    last_login_at: {
+      type: Date,
     },
   },
   { timestamps: true }
