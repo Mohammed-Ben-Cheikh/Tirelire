@@ -76,6 +76,33 @@ class AuthController {
       .withMessage("Le mot de passe doit contenir au moins 6 caractères"),
   ];
 
+  static emailValidateur = [
+    body("email")
+      .exists()
+      .withMessage("Le champ email est requis")
+      .isEmail()
+      .normalizeEmail()
+      .withMessage("Veuillez fournir un email valide"),
+  ];
+
+  static resetValidateur = [
+    body("password")
+      .exists()
+      .withMessage("Le champ mot de passe est requis")
+      .isLength({ min: 6 })
+      .withMessage("Le mot de passe doit contenir au moins 6 caractères"),
+
+    body("confirmPassword")
+      .exists()
+      .withMessage("La confirmation du mot de passe est requise"),
+
+    body("token").exists().withMessage("Le token est requis"),
+  ];
+
+  static tokenValidateur = [
+    body("token").exists().withMessage("Le token est requis"),
+  ];
+
   /**
    * User controller function
    * @param {import('express').Request} req - Express request object
@@ -240,8 +267,8 @@ class AuthController {
       return res.error(errors.array()[0].msg, 400);
     }
     const { email } = req.body;
-    const user = User.findOne({ email });
     try {
+      const user = await User.findOne({ email });
       if (!user) {
         return res.error("Utilisateur non trouvé", 404);
       }
@@ -317,8 +344,8 @@ class AuthController {
       return res.error(errors.array()[0].msg, 400);
     }
     const { email } = req.body;
-    const user = User.findOne({ email });
     try {
+      const user = await User.findOne({ email });
       if (!user) {
         return res.error("Utilisateur non trouvé", 404);
       }
