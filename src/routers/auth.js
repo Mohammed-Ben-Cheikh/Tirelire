@@ -9,5 +9,9 @@ authRouter.post(
   AuthController.register
 );
 authRouter.post("/login", AuthController.loginValidateur, AuthController.login);
+authRouter.post("/validate", AuthController.validate);
+authRouter.post("/message/validate", AuthController.validateMessage);
+authRouter.post("/reset", AuthController.reset);
+authRouter.post("/message/reset", AuthController.resetMessage);
 
 export default authRouter;

@@ -30,11 +30,19 @@ export const responseHandler = (req, res, next) => {
    * @returns {Object} Express response object
    */
   res.error = (message = "Error", status = 500, error = null) => {
+    const errorResponse = error
+      ? typeof error === "object" && error !== null
+        ? error instanceof Error
+          ? error.toString()
+          : error
+        : error.toString()
+      : null;
+
     return res.status(status).json({
       success: false,
       message,
       data: null,
-      error: error ? error.toString() : null,
+      error: errorResponse,
     });
   };
 
