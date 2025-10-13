@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import MailValidation from "../../models/EmailValidation.js";
+import PasswordReset from "../../models/PasswordReset.js";
 import mailSender from "../mailSender.js";
 
 export const passwordResetMail = async (to) => {
@@ -52,7 +52,7 @@ export const passwordResetMail = async (to) => {
   try {
     const mailSent = await mailSender(to, subject, message);
     if (mailSent) {
-      const storeToken = new MailValidation({
+      const storeToken = new PasswordReset({
         email: to,
         token: combinedToken,
       });

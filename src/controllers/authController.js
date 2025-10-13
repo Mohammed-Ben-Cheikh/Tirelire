@@ -244,9 +244,9 @@ class AuthController {
         email: user.email,
         role: user.role,
       };
-      const token = generateToken(userData);
+      const jwtToken = generateToken(userData);
       return res.success(
-        { user: AuthController.sanitizeUserData(user), token },
+        { user: AuthController.sanitizeUserData(user), token: jwtToken },
         "Utilisateur connecté avec succès",
         200
       );
@@ -271,6 +271,13 @@ class AuthController {
       const user = await User.findOne({ email });
       if (!user) {
         return res.error("Utilisateur non trouvé", 404);
+      }
+      if (user.email_verified === true) {
+        return res.success(
+          null,
+          "Votre compte est déjà vérifié. Vous pouvez vous connecter.",
+          200
+        );
       }
       const mailResult = await validateMail(email);
       if (mailResult.success) {
@@ -307,9 +314,10 @@ class AuthController {
           400
         );
       }
+      const hashedPassword = await bcryptjs.hash(password, 10);
       const user = await User.findOneAndUpdate(
         { email },
-        { password: confirmPassword },
+        { password: hashedPassword },
         { new: true }
       );
       if (!user) {
@@ -321,9 +329,9 @@ class AuthController {
         email: user.email,
         role: user.role,
       };
-      const token = generateToken(userData);
+      const jwtToken = generateToken(userData);
       return res.success(
-        { user: AuthController.sanitizeUserData(user), token },
+        { user: AuthController.sanitizeUserData(user), token: jwtToken },
         "Utilisateur connecté avec succès",
         200
       );
