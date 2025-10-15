@@ -114,5 +114,117 @@ class KycController {
       return res.error("Validation échouée", 400, error);
     }
   }
+
+  /**
+   * User controller function
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   */
+  static async getKycs(req, res) {
+    try {
+      const kycs = await Kyc.find();
+      if (kycs.length === 0) {
+        return res.error("Aucune information KYC trouvée", 404);
+      }
+      return res.success(
+        { kycs },
+        "Informations KYC récupérées avec succès",
+        200
+      );
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des informations KYC:",
+        error
+      );
+      return res.error(
+        "Échec de la récupération des informations KYC",
+        500,
+        error
+      );
+    }
+  }
+
+  /**
+   * User controller function
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   */
+  static async getKyc(req, res) {
+    const userId = req.user.userId;
+    const role = req.user.userId;
+    switch (role) {
+      
+    }
+    try {
+      const kycId = req.params.kycId || req.query.kycId;
+      if (!kycId) {
+        return res.error("L'identifiant KYC est requis", 400);
+      }
+      const kyc = await Kyc.findById(kycId);
+      if (!kyc) {
+        return res.error("Aucune information KYC trouvée", 404);
+      }
+      return res.success(
+        { kyc },
+        "Informations KYC récupérées avec succès",
+        200
+      );
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des informations KYC:",
+        error
+      );
+      return res.error(
+        "Échec de la récupération des informations KYC",
+        500,
+        error
+      );
+    }
+  }
+
+  /**
+   * User controller function
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   */
+  static async adminValidation(req, res) {
+    const userId = req.user.userId;
+    const { kycId, status } = req.body;
+    const allowedStatuses = ["pending", "in_review", "approved", "rejected"];
+    try {
+      const kyc = await Kyc.findById(kycId);
+      if (!kyc) {
+        return res.error("Aucune information KYC trouvée", 404);
+      }
+      if (!status || !allowedStatuses.includes(status)) {
+        return res.error("Statut invalide", 400);
+      }
+      if (kyc) {
+        kyc.facialVerificationCompleted = true;
+        kyc.status = status;
+        kyc.facialVerificationScore = 1;
+        kyc.reviewedBy = {
+          source: "human",
+          user: userId,
+        };
+      }
+      kyc.status = status;
+      await kyc.save();
+      return res.success(
+        { kyc },
+        `Statut KYC ${
+          status === "approved"
+            ? "approuvé"
+            : status === "rejected"
+            ? "rejeté"
+            : "mis à jour"
+        } avec succès`,
+        200
+      );
+    } catch (error) {
+      console.error("Erreur lors de la validation KYC:", error);
+      return res.error("Validation échouée", 500, error);
+    }
+  }
 }
 export default KycController;
