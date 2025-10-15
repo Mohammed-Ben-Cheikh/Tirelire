@@ -9,10 +9,6 @@ class KycController {
    */
   static async create(req, res) {
     const userId = req.user.userId;
-    const isUserValidate = await Kyc.findOne({ userId });
-    if (isUserValidate) {
-      return res.error("Vous avez déjà soumis vos informations KYC", 409);
-    }
     const {
       firstName,
       lastName,
@@ -23,10 +19,14 @@ class KycController {
       postalCode,
       country,
     } = req.body;
-    console.log(isUserValidate.nationalIdNumber);
-    if (isUserValidate.nationalIdNumber == nationalIdNumber) {
+    const isKycExists = await Kyc.findOne({ userId });
+    if (isKycExists) {
+      return res.error("Vous avez déjà soumis vos informations KYC", 409);
+    }
+    const kycs = await Kyc.find({ nationalIdNumber });
+    if (kycs.length > 0) {
       return res.error(
-        "Vous avez déjà soumis vos informations avec cet carte nationale d'identité",
+        "Cette carte nationale d'identité est déjà utilisée",
         409
       );
     }
@@ -93,6 +93,7 @@ class KycController {
       if (validation.validate) {
         kyc.facialVerificationCompleted = true;
         kyc.facialVerificationScore = validation.score;
+        kyc.selfieImageUrl = selfieImageUrl;
         kyc.status = "approved";
         kyc.reviewedBy = {
           source: "ai",
@@ -151,12 +152,8 @@ class KycController {
    */
   static async getKyc(req, res) {
     const userId = req.user.userId;
-    const role = req.user.userId;
-    switch (role) {
-      
-    }
     try {
-      const kycId = req.params.kycId || req.query.kycId;
+      const kycId = req.query.kycId;
       if (!kycId) {
         return res.error("L'identifiant KYC est requis", 400);
       }
