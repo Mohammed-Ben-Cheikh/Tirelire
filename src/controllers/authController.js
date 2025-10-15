@@ -29,14 +29,14 @@ class AuthController {
   };
 
   static registerValidateur = [
-    body("first_name")
+    body("firstName")
       .exists()
       .withMessage("Le champ prénom est requis")
       .trim()
       .isLength({ min: 2, max: 20 })
       .withMessage("Le prénom doit contenir entre 2 et 20 caractères"),
 
-    body("last_name")
+    body("lastName")
       .exists()
       .withMessage("Le champ nom est requis")
       .trim()
@@ -113,7 +113,7 @@ class AuthController {
     if (!errors.isEmpty()) {
       return res.error(errors.array()[0].msg, 400);
     }
-    const { email, password, confirmPassword, first_name, last_name } =
+    const { email, password, confirmPassword, firstName, lastName } =
       req.body;
     if (password !== confirmPassword) {
       return res.error("Les mots de passe ne correspondent pas", 400);
@@ -127,8 +127,8 @@ class AuthController {
       const user = new User({
         email,
         password: hashedPassword,
-        first_name,
-        last_name,
+        firstName,
+        lastName,
       });
       try {
         await user.save();

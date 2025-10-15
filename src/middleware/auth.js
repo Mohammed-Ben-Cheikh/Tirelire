@@ -1,5 +1,5 @@
-import User from "../models/User";
-import { extractTokenFromHeader, verifyToken } from "../utils/jwt";
+import User from "../models/User.js";
+import { extractTokenFromHeader, verifyToken } from "../utils/jwt.js";
 /**
  * Middleware to add success and error response methods to res object
  * @param {import('express').Request} req - Express request object

@@ -4,6 +4,7 @@ import morgan from "morgan";
 import connectDB from "./configs/database.js";
 import { responseHandler } from "./middleware/responseHandler.js";
 import authRouter from "./routers/auth.js";
+import kycRouter from "./routers/kyc.js";
 
 dotenv.config();
 const app = express();
@@ -15,6 +16,7 @@ app.use("/uploads", express.static("uploads"));
 app.use(responseHandler);
 
 app.use("/api/auth", authRouter);
+app.use("/api", kycRouter);
 
 connectDB().then(() => {
   app.listen(PORT, () => {
