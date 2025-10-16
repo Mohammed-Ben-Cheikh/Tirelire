@@ -70,6 +70,9 @@ const KycSchema = new Schema(
     reviewedAt: {
       type: Date,
     },
+    rejectionReason: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

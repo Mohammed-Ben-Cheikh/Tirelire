@@ -94,6 +94,7 @@ class KycController {
         kyc.facialVerificationCompleted = true;
         kyc.facialVerificationScore = validation.score;
         kyc.selfieImageUrl = selfieImageUrl;
+        kyc.reviewedAt = new Date().toISOString();
         kyc.status = "approved";
         kyc.reviewedBy = {
           source: "ai",
@@ -186,7 +187,7 @@ class KycController {
    */
   static async adminValidation(req, res) {
     const userId = req.user.userId;
-    const { kycId, status } = req.body;
+    const { kycId, status, rejectionReason } = req.body;
     const allowedStatuses = ["pending", "in_review", "approved", "rejected"];
     try {
       const kyc = await Kyc.findById(kycId);
@@ -197,9 +198,16 @@ class KycController {
         return res.error("Statut invalide", 400);
       }
       if (kyc) {
+        if (status === "rejected") {
+          if (!rejectionReason) {
+            return res.error("Un motif de rejet est requis", 400);
+          }
+          kyc.rejectionReason = rejectionReason;
+        }
         kyc.facialVerificationCompleted = true;
         kyc.status = status;
         kyc.facialVerificationScore = 1;
+        kyc.reviewedAt = new Date().toISOString();
         kyc.reviewedBy = {
           source: "human",
           user: userId,
