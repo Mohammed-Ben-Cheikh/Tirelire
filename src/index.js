@@ -4,6 +4,7 @@ import morgan from "morgan";
 import connectDB from "./configs/database.js";
 import { responseHandler } from "./middleware/responseHandler.js";
 import authRouter from "./routers/auth.js";
+import groupRouter from "./routers/group.js";
 import kycRouter from "./routers/kyc.js";
 
 dotenv.config();
@@ -17,6 +18,7 @@ app.use(responseHandler);
 
 app.use("/api/auth", authRouter);
 app.use("/api", kycRouter);
+app.use("/api", groupRouter);
 
 connectDB().then(() => {
   app.listen(PORT, () => {

@@ -1,5 +1,6 @@
 import fs from "fs";
 import multer from "multer";
+import makeSlugFrom from "../utils/slug.js";
 
 const uploadDir = "./uploads";
 if (!fs.existsSync(uploadDir)) {
@@ -11,10 +12,7 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const fileExtension = file.originalname.split('.').pop();
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 8);
-    const uniqueName = `tirelire-image-${timestamp}-${randomString}.${fileExtension}`;
+    const uniqueName = `${makeSlugFrom(null, "image")}.${fileExtension}`;
     cb(null, uniqueName);
   },
 });

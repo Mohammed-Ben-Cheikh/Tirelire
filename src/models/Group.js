@@ -9,6 +9,11 @@ const GroupSchema = new Schema(
       trim: true,
       maxlength: [100, "Le nom ne peut dépasser 100 caractères"],
     },
+    slug: {
+      type: String,
+      unique: true,
+      trim: true,
+    },
     description: {
       type: String,
       trim: true,
@@ -32,7 +37,7 @@ const GroupSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["draft", "active", "completed", "cancelled"],
+      enum: ["draft", "active", "completed"],
       default: "active",
     },
     startDate: {

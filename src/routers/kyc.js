@@ -9,6 +9,7 @@ kycRouter.post(
   "/service/kyc",
   authenticate,
   upload.single("nationalIdImage"),
+  KycController.createValidateur,
   KycController.create
 );
 
@@ -20,7 +21,7 @@ kycRouter.post(
 );
 
 kycRouter.get(
-  "/service/kyc",
+  "/service/kyc/:kycId",
   authenticate,
   is(["particulier", "admin"]),
   KycController.getKyc
@@ -37,6 +38,7 @@ kycRouter.post(
   "/service/kyc/admin/validate",
   authenticate,
   upload.single("selfieImage"),
+  KycController.adminValidationValidateur,
   KycController.adminValidation
 );
 

@@ -1,4 +1,5 @@
 import Group from "../models/Group.js";
+import makeSlugFrom from "../utils/slug.js";
 
 class GroupController {
   /**
@@ -29,9 +30,9 @@ class GroupController {
    * @param {import('express').Response} res - Express response object
    */
   static async getGroup(req, res) {
-    const groupId = req.query.groupId;
+    const slug = req.params.slug;
     try {
-      const group = await Group.findById(groupId);
+      const group = await Group.findOne({ slug });
       if (!group) {
         return res.error("Groupe non trouvé", 404);
       }
@@ -52,9 +53,39 @@ class GroupController {
    * @param {import('express').Response} res - Express response object
    */
   static async create(req, res) {
-    const {} = req.body;
+    const creatorId = req.user.userId;
+    const { name, description, maxMembers, tags, isPrivate } = req.body;
+    const nationalIdImageUrl = `${process.env.API_URL}/uploads/${req.file.filename}`;
     try {
-    } catch (error) {}
+      const slug = makeSlugFrom(name, "group");
+      const group = new Group({
+        name,
+        slug,
+        description,
+        creatorId,
+        maxMembers,
+        tags,
+        isPrivate,
+      });
+
+      const savedGroup = await group.save();
+      if (savedGroup) {
+        return res.success(
+          { group: savedGroup },
+          "Groupe créé avec succès",
+          201
+        );
+      } else {
+        return res.error("Impossible de créer le groupe", 400);
+      }
+    } catch (error) {
+      console.error(error);
+      return res.error(
+        "Une erreur est survenue lors de la création du groupe",
+        500,
+        error
+      );
+    }
   }
 
   /**

@@ -1,37 +1,87 @@
+import { body, validationResult } from "express-validator";
 import Kyc from "../models/Kyc.js";
 import { validateFace } from "../services/validateImage.service.js";
 
 class KycController {
+  static createValidateur = [
+    body("firstName")
+      .exists()
+      .withMessage("Le champ prénom est requis")
+      .trim()
+      .isLength({ min: 2, max: 20 })
+      .withMessage("Le prénom doit contenir entre 2 et 20 caractères"),
+
+    body("lastName")
+      .exists()
+      .withMessage("Le champ nom est requis")
+      .trim()
+      .isLength({ min: 2, max: 20 })
+      .withMessage("Le nom doit contenir entre 2 et 20 caractères"),
+
+    body("nationalIdNumber")
+      .exists()
+      .withMessage("Le numéro de carte d'identité est requis")
+      .trim()
+      .isLength({ min: 5 })
+      .withMessage("Le numéro de carte d'identité n'est pas valide"),
+
+    body("dateOfBirth")
+      .exists()
+      .withMessage("La date de naissance est requise")
+      .isISO8601()
+      .withMessage("Format de date invalide"),
+
+    body("street").exists().withMessage("L'adresse est requise"),
+    body("city").exists().withMessage("La ville est requise"),
+    body("postalCode").exists().withMessage("Le code postal est requis"),
+    body("country").exists().withMessage("Le pays est requis"),
+  ];
+
+  static adminValidationValidateur = [
+    body("kycId").exists().withMessage("L'identifiant KYC est requis"),
+    body("status")
+      .exists()
+      .withMessage("Le statut est requis")
+      .isIn(["pending", "in_review", "approved", "rejected"])
+      .withMessage("Statut invalide"),
+    body("rejectionReason").optional(),
+  ];
+
   /**
    * User controller function
    * @param {import('express').Request} req - Express request object
    * @param {import('express').Response} res - Express response object
    */
   static async create(req, res) {
-    const userId = req.user.userId;
-    const {
-      firstName,
-      lastName,
-      nationalIdNumber,
-      dateOfBirth,
-      street,
-      city,
-      postalCode,
-      country,
-    } = req.body;
-    const isKycExists = await Kyc.findOne({ userId });
-    if (isKycExists) {
-      return res.error("Vous avez déjà soumis vos informations KYC", 409);
-    }
-    const kycs = await Kyc.find({ nationalIdNumber });
-    if (kycs.length > 0) {
-      return res.error(
-        "Cette carte nationale d'identité est déjà utilisée",
-        409
-      );
-    }
-    const nationalIdImageUrl = `${process.env.API_URL}/uploads/${req.file.filename}`;
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const userId = req.user.userId;
+      const {
+        firstName,
+        lastName,
+        nationalIdNumber,
+        dateOfBirth,
+        street,
+        city,
+        postalCode,
+        country,
+      } = req.body;
+      const isKycExists = await Kyc.findOne({ userId });
+      if (isKycExists) {
+        return res.error("Vous avez déjà soumis vos informations KYC", 409);
+      }
+      const kycs = await Kyc.find({ nationalIdNumber });
+      if (kycs.length > 0) {
+        return res.error(
+          "Cette carte nationale d'identité est déjà utilisée",
+          409
+        );
+      }
+      const nationalIdImageUrl = `${process.env.API_URL}/uploads/${req.file.filename}`;
+
       const kyc = new Kyc({
         userId,
         firstName,
@@ -76,9 +126,13 @@ class KycController {
    * @param {import('express').Response} res - Express response object
    */
   static async validate(req, res) {
-    const { userId } = req.user;
-    const selfieImageUrl = `${process.env.API_URL}/uploads/${req.file.filename}`;
     try {
+      if (!req.file) {
+        return res.error("L'image du selfie est requise", 400);
+      }
+      const { userId } = req.user;
+      const selfieImageUrl = `${process.env.API_URL}/uploads/${req.file.filename}`;
+
       const kyc = await Kyc.findOne({ userId });
       if (!kyc) {
         return res.error(
@@ -152,9 +206,9 @@ class KycController {
    * @param {import('express').Response} res - Express response object
    */
   static async getKyc(req, res) {
-    const userId = req.user.userId;
     try {
-      const kycId = req.query.kycId;
+      const userId = req.user.userId;
+      const kycId = req.params.kycId;
       if (!kycId) {
         return res.error("L'identifiant KYC est requis", 400);
       }
@@ -186,10 +240,14 @@ class KycController {
    * @param {import('express').Response} res - Express response object
    */
   static async adminValidation(req, res) {
-    const userId = req.user.userId;
-    const { kycId, status, rejectionReason } = req.body;
-    const allowedStatuses = ["pending", "in_review", "approved", "rejected"];
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const userId = req.user.userId;
+      const { kycId, status, rejectionReason } = req.body;
+      const allowedStatuses = ["pending", "in_review", "approved", "rejected"];
       const kyc = await Kyc.findById(kycId);
       if (!kyc) {
         return res.error("Aucune information KYC trouvée", 404);

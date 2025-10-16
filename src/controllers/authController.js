@@ -109,16 +109,16 @@ class AuthController {
    * @param {import('express').Response} res - Express response object
    */
   static async register(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.error(errors.array()[0].msg, 400);
-    }
-    const { email, password, confirmPassword, firstName, lastName } =
-      req.body;
-    if (password !== confirmPassword) {
-      return res.error("Les mots de passe ne correspondent pas", 400);
-    }
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const { email, password, confirmPassword, firstName, lastName } =
+        req.body;
+      if (password !== confirmPassword) {
+        return res.error("Les mots de passe ne correspondent pas", 400);
+      }
       const findUser = await User.find({ email });
       if (findUser.length > 0) {
         return res.error("Cet email est déjà utilisé", 409);
@@ -172,12 +172,12 @@ class AuthController {
    * @param {import('express').Response} res - Express response object
    */
   static async login(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.error(errors.array()[0].msg, 400);
-    }
-    const { email, password } = req.body;
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const { email, password } = req.body;
       const user = await User.findOne({ email });
       if (!user) {
         return res.error("Email ou mot de passe invalide", 404);
@@ -216,13 +216,13 @@ class AuthController {
    * @param {import('express').Response} res - Express response object
    */
   static async validate(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.error(errors.array()[0].msg, 400);
-    }
-    const { token } = req.body;
-    const email = AuthController.decryptEmailFromToken(token);
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const { token } = req.body;
+      const email = AuthController.decryptEmailFromToken(token);
       const tokenData = await EmailValidation.findOne({ token });
       if (!tokenData || tokenData.email !== email) {
         return res.error(
@@ -262,12 +262,12 @@ class AuthController {
    * @param {import('express').Response} res - Express response object
    */
   static async validateMessage(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.error(errors.array()[0].msg, 400);
-    }
-    const { email } = req.body;
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const { email } = req.body;
       const user = await User.findOne({ email });
       if (!user) {
         return res.error("Utilisateur non trouvé", 404);
@@ -297,16 +297,16 @@ class AuthController {
    * @param {import('express').Response} res - Express response object
    */
   static async reset(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.error(errors.array()[0].msg, 400);
-    }
-    const { password, confirmPassword, token } = req.body;
-    if (password !== confirmPassword) {
-      return res.error("Les mots de passe ne correspondent pas", 400);
-    }
-    const email = AuthController.decryptEmailFromToken(token);
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const { password, confirmPassword, token } = req.body;
+      if (password !== confirmPassword) {
+        return res.error("Les mots de passe ne correspondent pas", 400);
+      }
+      const email = AuthController.decryptEmailFromToken(token);
       const tokenData = await PasswordReset.findOne({ token });
       if (!tokenData || tokenData.email !== email) {
         return res.error(
@@ -347,12 +347,12 @@ class AuthController {
    * @param {import('express').Response} res - Express response object
    */
   static async resetMessage(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.error(errors.array()[0].msg, 400);
-    }
-    const { email } = req.body;
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const { email } = req.body;
       const user = await User.findOne({ email });
       if (!user) {
         return res.error("Utilisateur non trouvé", 404);
