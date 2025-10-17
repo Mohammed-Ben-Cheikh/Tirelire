@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-// filepath: c:\Users\bench\Desktop\My Project\Tirelire\src\models\MailValidation.js
 const { Schema } = mongoose;
 
 const emailValidationSchema = new Schema(

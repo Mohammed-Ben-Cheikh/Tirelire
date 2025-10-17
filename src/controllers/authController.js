@@ -29,14 +29,14 @@ class AuthController {
   };
 
   static registerValidateur = [
-    body("first_name")
+    body("firstName")
       .exists()
       .withMessage("Le champ prénom est requis")
       .trim()
       .isLength({ min: 2, max: 20 })
       .withMessage("Le prénom doit contenir entre 2 et 20 caractères"),
 
-    body("last_name")
+    body("lastName")
       .exists()
       .withMessage("Le champ nom est requis")
       .trim()
@@ -109,16 +109,16 @@ class AuthController {
    * @param {import('express').Response} res - Express response object
    */
   static async register(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.error(errors.array()[0].msg, 400);
-    }
-    const { email, password, confirmPassword, first_name, last_name } =
-      req.body;
-    if (password !== confirmPassword) {
-      return res.error("Les mots de passe ne correspondent pas", 400);
-    }
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const { email, password, confirmPassword, firstName, lastName } =
+        req.body;
+      if (password !== confirmPassword) {
+        return res.error("Les mots de passe ne correspondent pas", 400);
+      }
       const findUser = await User.find({ email });
       if (findUser.length > 0) {
         return res.error("Cet email est déjà utilisé", 409);
@@ -127,8 +127,8 @@ class AuthController {
       const user = new User({
         email,
         password: hashedPassword,
-        first_name,
-        last_name,
+        firstName,
+        lastName,
       });
       try {
         await user.save();
@@ -172,12 +172,12 @@ class AuthController {
    * @param {import('express').Response} res - Express response object
    */
   static async login(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.error(errors.array()[0].msg, 400);
-    }
-    const { email, password } = req.body;
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const { email, password } = req.body;
       const user = await User.findOne({ email });
       if (!user) {
         return res.error("Email ou mot de passe invalide", 404);
@@ -216,13 +216,13 @@ class AuthController {
    * @param {import('express').Response} res - Express response object
    */
   static async validate(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.error(errors.array()[0].msg, 400);
-    }
-    const { token } = req.body;
-    const email = AuthController.decryptEmailFromToken(token);
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const { token } = req.body;
+      const email = AuthController.decryptEmailFromToken(token);
       const tokenData = await EmailValidation.findOne({ token });
       if (!tokenData || tokenData.email !== email) {
         return res.error(
@@ -244,9 +244,9 @@ class AuthController {
         email: user.email,
         role: user.role,
       };
-      const token = generateToken(userData);
+      const jwtToken = generateToken(userData);
       return res.success(
-        { user: AuthController.sanitizeUserData(user), token },
+        { user: AuthController.sanitizeUserData(user), token: jwtToken },
         "Utilisateur connecté avec succès",
         200
       );
@@ -262,15 +262,22 @@ class AuthController {
    * @param {import('express').Response} res - Express response object
    */
   static async validateMessage(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.error(errors.array()[0].msg, 400);
-    }
-    const { email } = req.body;
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const { email } = req.body;
       const user = await User.findOne({ email });
       if (!user) {
         return res.error("Utilisateur non trouvé", 404);
+      }
+      if (user.email_verified === true) {
+        return res.success(
+          null,
+          "Votre compte est déjà vérifié. Vous pouvez vous connecter.",
+          200
+        );
       }
       const mailResult = await validateMail(email);
       if (mailResult.success) {
@@ -290,16 +297,16 @@ class AuthController {
    * @param {import('express').Response} res - Express response object
    */
   static async reset(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.error(errors.array()[0].msg, 400);
-    }
-    const { password, confirmPassword, token } = req.body;
-    if (password !== confirmPassword) {
-      return res.error("Les mots de passe ne correspondent pas", 400);
-    }
-    const email = AuthController.decryptEmailFromToken(token);
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const { password, confirmPassword, token } = req.body;
+      if (password !== confirmPassword) {
+        return res.error("Les mots de passe ne correspondent pas", 400);
+      }
+      const email = AuthController.decryptEmailFromToken(token);
       const tokenData = await PasswordReset.findOne({ token });
       if (!tokenData || tokenData.email !== email) {
         return res.error(
@@ -307,9 +314,10 @@ class AuthController {
           400
         );
       }
+      const hashedPassword = await bcryptjs.hash(password, 10);
       const user = await User.findOneAndUpdate(
         { email },
-        { password: confirmPassword },
+        { password: hashedPassword },
         { new: true }
       );
       if (!user) {
@@ -321,9 +329,9 @@ class AuthController {
         email: user.email,
         role: user.role,
       };
-      const token = generateToken(userData);
+      const jwtToken = generateToken(userData);
       return res.success(
-        { user: AuthController.sanitizeUserData(user), token },
+        { user: AuthController.sanitizeUserData(user), token: jwtToken },
         "Utilisateur connecté avec succès",
         200
       );
@@ -339,12 +347,12 @@ class AuthController {
    * @param {import('express').Response} res - Express response object
    */
   static async resetMessage(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.error(errors.array()[0].msg, 400);
-    }
-    const { email } = req.body;
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error(errors.array()[0].msg, 400);
+      }
+      const { email } = req.body;
       const user = await User.findOne({ email });
       if (!user) {
         return res.error("Utilisateur non trouvé", 404);
