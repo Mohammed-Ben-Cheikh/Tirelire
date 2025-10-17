@@ -15,6 +15,7 @@ app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 app.use(responseHandler);
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRouter);
 app.use("/api", kycRouter);

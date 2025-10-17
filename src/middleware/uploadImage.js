@@ -12,6 +12,7 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
+    const fileExtension = file.originalname.split(".").pop();
     const uniqueName = `${makeSlugFrom(null, "image")}.${fileExtension}`;
     cb(null, uniqueName);
   },
